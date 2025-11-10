@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Системная информация - {{ ansible_hostname }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .info-section {
+            margin: 20px 0;
+        }
+        .info-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+        }
+        .label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Системная информация</h1>
+        
+        <div class="info-section">
+            <h2>📊 Основные характеристики</h2>
+            <div class="info-item">
+                <span class="label">Имя хоста:</span> {{ ansible_hostname }}
+            </div>
+            <div class="info-item">
+                <span class="label">IP-адрес:</span> {{ ansible_default_ipv4.address }}
+            </div>
+            <div class="info-item">
+                <span class="label">Операционная система:</span> {{ ansible_distribution }} {{ ansible_distribution_version }}
+            </div>
+            <div class="info-item">
+                <span class="label">Ядро:</span> {{ ansible_kernel }}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>⚙️ Процессор (CPU)</h2>
+            <div class="info-item">
+                <span class="label">Модель:</span> {{ ansible_processor[1] if ansible_processor[1] is defined else ansible_processor[0] }}
+            </div>
+            <div class="info-item">
+                <span class="label">Количество ядер:</span> {{ ansible_processor_cores }}
+            </div>
+            <div class="info-item">
+                <span class="label">Количество процессоров:</span> {{ ansible_processor_count }}
+            </div>
+            <div class="info-item">
+                <span class="label">Архитектура:</span> {{ ansible_architecture }}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>💾 Оперативная память (RAM)</h2>
+            <div class="info-item">
+                <span class="label">Общий объем:</span> {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
+            </div>
+            <div class="info-item">
+                <span class="label">Доступно:</span> {{ (ansible_memfree_mb / 1024) | round(2) }} GB
+            </div>
+            <div class="info-item">
+                <span class="label">Используется:</span> {{ ((ansible_memtotal_mb - ansible_memfree_mb) / 1024) | round(2) }} GB
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>💽 Жесткие диски (HDD)</h2>
+            {% if ansible_devices is defined %}
+                {% for device, info in ansible_devices.items() %}
+                    {% if info.removable == "0" and device != "sr0" and device != "loop" %}
+                    <div class="info-item">
+                        <span class="label">Устройство {{ device }}:</span> 
+                        {% if info.size is defined %}
+                            {{ (info.size | replace('GB', '') | float / 1024) | round(2) }} GB
+                        {% else %}
+                            Размер не определен
+                        {% endif %}
+                        ({{ info.model | default('Модель не определена') }})
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="info-item">Информация о дисках недоступна</div>
+            {% endif %}
+        </div>
+
+        <div class="timestamp">
+            Обновлено: {{ ansible_date_time.iso8601 }}
+        </div>
+    </div>
+</body>
+</html>
