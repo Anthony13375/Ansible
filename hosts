@@ -1,0 +1,2 @@
+[my]
+192.168.17.20 ansible_user=anton ansible_ssh_password=123

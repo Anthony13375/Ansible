@@ -1,0 +1,30 @@
+---
+- name: Configure custom MOTD
+  hosts: all
+  become: yes
+  vars:
+    custom_motd: "Добро пожаловать в нашу систему! Приветствие изменено с помощью Ansible."
+    
+  tasks:
+    - name: Create custom MOTD file
+      copy:
+        content: |
+          ###########################################
+          # {{ custom_motd }}
+          # Дата: {{ ansible_date_time.iso8601 }}
+          # IP-адрес: {{ ansible_default_ipv4.address }}
+          # Хост: {{ ansible_hostname }}
+          # Хорошего вам дня, системный администратор!
+          ###########################################
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: '0644'
+        
+    - name: Verify MOTD content
+      command: cat /etc/motd
+      register: motd_content
+      
+    - name: Display MOTD content
+      debug:
+        var: motd_content.stdout
